@@ -38,6 +38,7 @@ type JoinOptions struct {
 	CertPath              string
 	CloudCoreIPPort       string
 	EdgeNodeName          string
+	ConfigPath            string
 	RuntimeType           string
 	RemoteRuntimeEndpoint string
 	Token                 string

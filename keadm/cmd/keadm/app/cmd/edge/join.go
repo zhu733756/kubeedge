@@ -103,6 +103,9 @@ func addJoinOtherFlags(cmd *cobra.Command, joinOptions *types.JoinOptions) {
 	cmd.Flags().StringVarP(&joinOptions.EdgeNodeName, types.EdgeNodeName, "i", joinOptions.EdgeNodeName,
 		"KubeEdge Node unique identification string, If flag not used then the command will generate a unique id on its own")
 
+	cmd.Flags().StringVarP(&joinOptions.ConfigPath, types.ConfigPath, "c", joinOptions.ConfigPath,
+		"KubeEdge config file path used to join")
+
 	cmd.Flags().StringVarP(&joinOptions.RemoteRuntimeEndpoint, types.RemoteRuntimeEndpoint, "p", joinOptions.RemoteRuntimeEndpoint,
 		"KubeEdge Edge Node RemoteRuntimeEndpoint string, If flag not set, it will use unix:///var/run/dockershim.sock")
 
@@ -157,6 +160,7 @@ func Add2ToolsList(toolList map[string]types.ToolsInstaller, flagData map[string
 		},
 		CloudCoreIP:           joinOptions.CloudCoreIPPort,
 		EdgeNodeName:          joinOptions.EdgeNodeName,
+		ConfigPath:            joinOptions.ConfigPath,
 		RuntimeType:           joinOptions.RuntimeType,
 		CertPath:              joinOptions.CertPath,
 		RemoteRuntimeEndpoint: joinOptions.RemoteRuntimeEndpoint,

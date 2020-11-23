@@ -35,6 +35,8 @@ const (
 	// KubeEdge Node unique idenfitcation string
 	EdgeNodeName = "edgenode-name"
 
+	ConfigPath = "edgecoreconfigpath"
+
 	// KubeEdge remote-runtime-endpoint string
 	RemoteRuntimeEndpoint = "remote-runtime-endpoint"
 
