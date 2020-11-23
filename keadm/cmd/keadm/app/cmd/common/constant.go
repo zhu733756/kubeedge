@@ -35,6 +35,12 @@ const (
 	// KubeEdge Node unique idenfitcation string
 	EdgeNodeName = "edgenode-name"
 
+	// KubeEdge Node IP address string
+	EdgeNodeIP = "edgenode-ip"
+
+	// KubeEdge EdgeCore config file path for override
+	ConfigPath = "edgecoreconfigpath"
+
 	// KubeEdge remote-runtime-endpoint string
 	RemoteRuntimeEndpoint = "remote-runtime-endpoint"
 
@@ -64,6 +70,12 @@ const (
 
 	// HttpServer sets the port where to apply for the edge certificate
 	CertPort = "certport"
+
+	// QuicServer sets the port where to apply for the edge quic
+	QuicPort = "quicport"
+
+	// Tunnel sets the port where to apply for the edge stream
+	TunnelPort = "tunnelport"
 
 	AdvertiseAddress = "advertise-address"
 

@@ -19,6 +19,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/blang/semver"
@@ -35,12 +36,26 @@ type KubeEdgeInstTool struct {
 	CertPath              string
 	CloudCoreIP           string
 	EdgeNodeName          string
+	EdgeNodeIP            string
+	ConfigPath            string
 	RuntimeType           string
 	RemoteRuntimeEndpoint string
 	Token                 string
 	CertPort              string
+	QuicPort              string
+	TunnelPort            string
 	CGroupDriver          string
 	TarballPath           string
+}
+
+func CopyFile(pathSrc, pathDst string) {
+	c := fmt.Sprintf("cp -r %s %s", pathSrc, pathDst)
+	cmd := exec.Command("sh", "-c", c)
+	_, err := cmd.Output()
+	if err != nil {
+		fmt.Printf("fail to copy file:  %s", c)
+		fmt.Printf("Output: %s\n", err.Error())
+	}
 }
 
 // InstallTools downloads KubeEdge for the specified verssion
@@ -94,6 +109,9 @@ func (ku *KubeEdgeInstTool) createEdgeConfigFiles() error {
 		if ku.EdgeNodeName != "" {
 			edgeCoreConfig.Modules.Edged.HostnameOverride = ku.EdgeNodeName
 		}
+		if ku.EdgeNodeIP != "" {
+			edgeCoreConfig.Modules.Edged.NodeIP = ku.EdgeNodeIP
+		}
 		if ku.RuntimeType != "" {
 			edgeCoreConfig.Modules.Edged.RuntimeType = ku.RuntimeType
 		}
@@ -120,6 +138,17 @@ func (ku *KubeEdgeInstTool) createEdgeConfigFiles() error {
 		} else {
 			edgeCoreConfig.Modules.EdgeHub.HTTPServer = "https://" + strings.Split(ku.CloudCoreIP, ":")[0] + ":10002"
 		}
+		if ku.QuicPort != "" {
+			edgeCoreConfig.Modules.EdgeHub.Quic.Server = strings.Split(ku.CloudCoreIP, ":")[0] + ":" + ku.QuicPort
+		} else {
+			edgeCoreConfig.Modules.EdgeHub.Quic.Server = strings.Split(ku.CloudCoreIP, ":")[0] + ":10001"
+		}
+		if ku.TunnelPort != "" {
+			edgeCoreConfig.Modules.EdgeStream.TunnelServer = strings.Split(ku.CloudCoreIP, ":")[0] + ":" + ku.TunnelPort
+		} else {
+			edgeCoreConfig.Modules.EdgeStream.TunnelServer = strings.Split(ku.CloudCoreIP, ":")[0] + ":10004"
+		}
+		edgeCoreConfig.Modules.EdgeStream.Enable = true
 
 		if ku.ToolVersion.Major == 1 && ku.ToolVersion.Minor == 2 {
 			edgeCoreConfig.Modules.EdgeHub.TLSPrivateKeyFile = strings.Join([]string{KubeEdgeCloudDefaultCertPath, "server.key"}, "")
@@ -161,6 +190,11 @@ func (ku *KubeEdgeInstTool) createEdgeConfigFiles() error {
 			return err
 		}
 	}
+
+	if "" != ku.ConfigPath {
+		CopyFile(ku.ConfigPath, "/etc/kubeedge/config/edgecore.yaml")
+	}
+
 	return nil
 }
 
