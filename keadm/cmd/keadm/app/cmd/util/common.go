@@ -49,7 +49,7 @@ const (
 	DebianOSType   = "debian"
 	CentOSType     = "centos"
 
-	KubeEdgeDownloadURL          = "https://github.com/kubeedge/kubeedge/releases/download"
+	KubeEdgeDownloadURL          = "https://kubeedge.pek3b.qingstor.com/releases/download"
 	OldEdgeServiceFile           = "edge.service"
 	EdgeServiceFile              = "edgecore.service"
 	CloudServiceFile             = "cloudcore.service"
