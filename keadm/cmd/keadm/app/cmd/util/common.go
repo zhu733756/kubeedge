@@ -53,7 +53,7 @@ const (
 	OldEdgeServiceFile           = "edge.service"
 	EdgeServiceFile              = "edgecore.service"
 	CloudServiceFile             = "cloudcore.service"
-	ServiceFileURLFormat         = "https://raw.githubusercontent.com/kubeedge/kubeedge/release-%s/build/tools/%s"
+	ServiceFileURLFormat         = "https://kubeedge.pek3b.qingstor.com/releases/service/%s/%s"
 	KubeEdgePath                 = "/etc/kubeedge/"
 	KubeEdgeUsrBinPath           = "/usr/local/bin"
 	KubeEdgeConfPath             = KubeEdgePath + "kubeedge/edge/conf"
