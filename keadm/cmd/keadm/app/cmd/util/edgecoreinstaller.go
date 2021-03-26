@@ -23,26 +23,28 @@ import (
 
 	types "github.com/kubeedge/kubeedge/keadm/cmd/keadm/app/cmd/common"
 	"github.com/kubeedge/kubeedge/pkg/apis/componentconfig/edgecore/v1alpha1"
+	v1 "k8s.io/api/core/v1"
 )
 
 // KubeEdgeInstTool embedes Common struct and contains cloud node ip:port information
 // It implements ToolsInstaller interface
 type KubeEdgeInstTool struct {
 	Common
-	CertPath              string
-	CloudCoreIP           string
-	EdgeNodeName          string
-	EdgeNodeIP            string
-	Region                string
-	ConfigPath            string
-	RuntimeType           string
-	RemoteRuntimeEndpoint string
-	Token                 string
-	CertPort              string
-	QuicPort              string
-	TunnelPort            string
-	CGroupDriver          string
-	TarballPath           string
+	CertPath                string
+	CloudCoreIP             string
+	EdgeNodeName            string
+	IsEdgeNoScheduleTaintOn bool
+	EdgeNodeIP              string
+	Region                  string
+	ConfigPath              string
+	RuntimeType             string
+	RemoteRuntimeEndpoint   string
+	Token                   string
+	CertPort                string
+	QuicPort                string
+	TunnelPort              string
+	CGroupDriver            string
+	TarballPath             string
 }
 
 // InstallTools downloads KubeEdge for the specified verssion
@@ -138,6 +140,15 @@ func (ku *KubeEdgeInstTool) createEdgeConfigFiles() error {
 		edgeCoreConfig.Modules.EdgeStream.TunnelServer = strings.Split(ku.CloudCoreIP, ":")[0] + ":" + ku.TunnelPort
 	} else {
 		edgeCoreConfig.Modules.EdgeStream.TunnelServer = strings.Split(ku.CloudCoreIP, ":")[0] + ":10004"
+	}
+
+	// add NoSchedule taints
+	if ku.IsEdgeNoScheduleTaintOn {
+		taint := v1.Taint{
+			Key:    "node-role.kubernetes.io/edge",
+			Effect: "NoSchedule",
+		}
+		edgeCoreConfig.Modules.Edged.Taints = append(edgeCoreConfig.Modules.Edged.Taints, taint)
 	}
 
 	edgeCoreConfig.Modules.EdgeStream.Enable = true

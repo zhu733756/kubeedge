@@ -109,6 +109,9 @@ func addJoinOtherFlags(cmd *cobra.Command, joinOptions *types.JoinOptions) {
 	cmd.Flags().StringVarP(&joinOptions.Region, types.Region, "z", joinOptions.Region,
 		"Used to distinguish download links for KubeEdge EdgeCore and Services")
 
+	cmd.Flags().BoolVarP(&joinOptions.IsEdgeNoScheduleTaintOn, types.IsEdgeNoScheduleTaintOn, "w", joinOptions.IsEdgeNoScheduleTaintOn,
+		"To determine whether to add taint on edge node")
+
 	cmd.Flags().StringVarP(&joinOptions.ConfigPath, types.ConfigPath, "c", joinOptions.ConfigPath,
 		"KubeEdge config file path used to join")
 
@@ -170,20 +173,21 @@ func Add2ToolsList(toolList map[string]types.ToolsInstaller, flagData map[string
 		Common: util.Common{
 			ToolVersion: semver.MustParse(kubeVer),
 		},
-		CloudCoreIP:           joinOptions.CloudCoreIPPort,
-		EdgeNodeName:          joinOptions.EdgeNodeName,
-		EdgeNodeIP:            joinOptions.EdgeNodeIP,
-		Region:                joinOptions.Region,
-		ConfigPath:            joinOptions.ConfigPath,
-		RuntimeType:           joinOptions.RuntimeType,
-		CertPath:              joinOptions.CertPath,
-		RemoteRuntimeEndpoint: joinOptions.RemoteRuntimeEndpoint,
-		Token:                 joinOptions.Token,
-		CertPort:              joinOptions.CertPort,
-		QuicPort:              joinOptions.QuicPort,
-		TunnelPort:            joinOptions.TunnelPort,
-		CGroupDriver:          joinOptions.CGroupDriver,
-		TarballPath:           joinOptions.TarballPath,
+		CloudCoreIP:             joinOptions.CloudCoreIPPort,
+		EdgeNodeName:            joinOptions.EdgeNodeName,
+		EdgeNodeIP:              joinOptions.EdgeNodeIP,
+		Region:                  joinOptions.Region,
+		IsEdgeNoScheduleTaintOn: joinOptions.IsEdgeNoScheduleTaintOn,
+		ConfigPath:              joinOptions.ConfigPath,
+		RuntimeType:             joinOptions.RuntimeType,
+		CertPath:                joinOptions.CertPath,
+		RemoteRuntimeEndpoint:   joinOptions.RemoteRuntimeEndpoint,
+		Token:                   joinOptions.Token,
+		CertPort:                joinOptions.CertPort,
+		QuicPort:                joinOptions.QuicPort,
+		TunnelPort:              joinOptions.TunnelPort,
+		CGroupDriver:            joinOptions.CGroupDriver,
+		TarballPath:             joinOptions.TarballPath,
 	}
 
 	toolList["MQTT"] = &util.MQTTInstTool{}
