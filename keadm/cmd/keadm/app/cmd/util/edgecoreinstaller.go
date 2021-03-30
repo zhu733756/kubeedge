@@ -30,21 +30,21 @@ import (
 // It implements ToolsInstaller interface
 type KubeEdgeInstTool struct {
 	Common
-	CertPath                string
-	CloudCoreIP             string
-	EdgeNodeName            string
-	IsEdgeNoScheduleTaintOn bool
-	EdgeNodeIP              string
-	Region                  string
-	ConfigPath              string
-	RuntimeType             string
-	RemoteRuntimeEndpoint   string
-	Token                   string
-	CertPort                string
-	QuicPort                string
-	TunnelPort              string
-	CGroupDriver            string
-	TarballPath             string
+	CertPath     string
+	CloudCoreIP  string
+	EdgeNodeName string
+	hasDefaultTaintbool
+	EdgeNodeIP            string
+	Region                string
+	ConfigPath            string
+	RuntimeType           string
+	RemoteRuntimeEndpoint string
+	Token                 string
+	CertPort              string
+	QuicPort              string
+	TunnelPort            string
+	CGroupDriver          string
+	TarballPath           string
 }
 
 // InstallTools downloads KubeEdge for the specified verssion
@@ -143,7 +143,7 @@ func (ku *KubeEdgeInstTool) createEdgeConfigFiles() error {
 	}
 
 	// add NoSchedule taints
-	if ku.IsEdgeNoScheduleTaintOn {
+	if ku.hasDefaultTaint {
 		taint := v1.Taint{
 			Key:    "node-role.kubernetes.io/edge",
 			Effect: "NoSchedule",

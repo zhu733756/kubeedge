@@ -35,8 +35,8 @@ const (
 	// KubeEdge Node unique idenfitcation string
 	EdgeNodeName = "edgenode-name"
 
-	//IsEdgeNoScheduleTaintOn is used to determining whether to add taint on edge node
-	IsEdgeNoScheduleTaintOn = "with-edge-taint"
+	//hasDefaultTaintis used to determining whether to add taint on edge node
+	hasDefaultTaint = "with-edge-taint"
 
 	// KubeEdge Node IP address string
 	EdgeNodeIP = "edgenode-ip"
