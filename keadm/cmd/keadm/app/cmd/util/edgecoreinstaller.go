@@ -30,10 +30,10 @@ import (
 // It implements ToolsInstaller interface
 type KubeEdgeInstTool struct {
 	Common
-	CertPath     string
-	CloudCoreIP  string
-	EdgeNodeName string
-	hasDefaultTaintbool
+	CertPath              string
+	CloudCoreIP           string
+	EdgeNodeName          string
+	HasDefaultTaint       bool
 	EdgeNodeIP            string
 	Region                string
 	ConfigPath            string
@@ -143,7 +143,7 @@ func (ku *KubeEdgeInstTool) createEdgeConfigFiles() error {
 	}
 
 	// add NoSchedule taints
-	if ku.hasDefaultTaint {
+	if ku.HasDefaultTaint {
 		taint := v1.Taint{
 			Key:    "node-role.kubernetes.io/edge",
 			Effect: "NoSchedule",
