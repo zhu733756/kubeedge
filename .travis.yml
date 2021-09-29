@@ -11,7 +11,7 @@ services:
   - docker
 
 go:
-  - 1.14
+  - 1.16
 
 env:
   - HOME=/home/travis
@@ -54,4 +54,3 @@ jobs:
         - make cloudimage
         - make admissionimage
         - make edgeimage ARCH="arm64v8"
-        - make edgesiteimage ARCH="arm64v8"

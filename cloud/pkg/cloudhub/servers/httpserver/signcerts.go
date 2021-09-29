@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/klog/v2"
 
@@ -61,7 +61,9 @@ func getIps(advertiseAddress []string) (Ips []net.IP) {
 
 // GenerateToken will create a token consisting of caHash and jwt Token and save it to secret
 func GenerateToken() error {
-	expiresAt := time.Now().Add(time.Hour * 24).Unix()
+	// set double TokenRefreshDuration as expirationTime, which can guarantee that the validity period
+	// of the token obtained at anytime is greater than or equal to TokenRefreshDuration
+	expiresAt := time.Now().Add(time.Hour * hubconfig.Config.CloudHub.TokenRefreshDuration * 2).Unix()
 
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -73,7 +75,7 @@ func GenerateToken() error {
 	tokenString, err := token.SignedString(keyPEM)
 
 	if err != nil {
-		return fmt.Errorf("Failed to generate the token for EdgeCore register, err: %v", err)
+		return fmt.Errorf("failed to generate the token for EdgeCore register, err: %v", err)
 	}
 
 	caHash := getCaHash()
@@ -82,10 +84,10 @@ func GenerateToken() error {
 	// save caHashAndToken to secret
 	err = CreateTokenSecret([]byte(caHashToken))
 	if err != nil {
-		return fmt.Errorf("Failed to create tokenSecret, err: %v", err)
+		return fmt.Errorf("failed to create tokenSecret, err: %v", err)
 	}
 
-	t := time.NewTicker(time.Hour * 12)
+	t := time.NewTicker(time.Hour * hubconfig.Config.CloudHub.TokenRefreshDuration)
 	go func() {
 		for {
 			<-t.C
@@ -101,7 +103,7 @@ func GenerateToken() error {
 
 func refreshToken() string {
 	claims := &jwt.StandardClaims{}
-	expirationTime := time.Now().Add(time.Hour * 12)
+	expirationTime := time.Now().Add(time.Hour * hubconfig.Config.CloudHub.TokenRefreshDuration * 2)
 	claims.ExpiresAt = expirationTime.Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	keyPEM := getCaKey()

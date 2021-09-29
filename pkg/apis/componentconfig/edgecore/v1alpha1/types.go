@@ -26,13 +26,6 @@ import (
 )
 
 const (
-	EdgeMeshDefaultLoadBalanceStrategy = "RoundRobin"
-	EdgeMeshDefaultInterface           = "docker0"
-	EdgeMeshDefaultSubNet              = "9.251.0.0/16"
-	EdgeMeshDefaultListenPort          = 40001
-)
-
-const (
 	MqttModeInternal MqttMode = 0
 	MqttModeBoth     MqttMode = 1
 	MqttModeExternal MqttMode = 2
@@ -64,6 +57,8 @@ type EdgeCoreConfig struct {
 	// Modules indicates EdgeCore modules config
 	// +Required
 	Modules *Modules `json:"modules,omitempty"`
+	// FeatureGates is a map of feature names to bools that enable or disable alpha/experimental features.
+	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
 
 // DataBase indicates the database info
@@ -99,9 +94,6 @@ type Modules struct {
 	DeviceTwin *DeviceTwin `json:"deviceTwin,omitempty"`
 	// DBTest indicates dbTest module config
 	DBTest *DBTest `json:"dbTest,omitempty"`
-	// EdgeMesh indicates edgeMesh module config
-	// +Required
-	EdgeMesh *EdgeMesh `json:"edgeMesh,omitempty"`
 	// EdgeStream indicates edgestream module config
 	// +Required
 	EdgeStream *EdgeStream `json:"edgeStream,omitempty"`
@@ -113,7 +105,7 @@ type Edged struct {
 	// Enable indicates whether edged is enabled,
 	// if set to false (for debugging etc.), skip checking other edged configs.
 	// default true
-	Enable bool `json:"enable,omitempty"`
+	Enable bool `json:"enable"`
 	// Labels indicates current node labels
 	Labels map[string]string `json:"labels,omitempty"`
 	// Annotations indicates current node annotations
@@ -135,7 +127,8 @@ type Edged struct {
 	// RemoteImageEndpoint indicates remote image endpoint
 	// default "unix:///var/run/dockershim.sock"
 	RemoteImageEndpoint string `json:"remoteImageEndpoint,omitempty"`
-	// NodeIP indicates current node ip
+	// NodeIP indicates current node ip.
+	// Setting the value overwrites the automatically detected IP address
 	// default get local host ip
 	NodeIP string `json:"nodeIP"`
 	// ClusterDNS indicates cluster dns
@@ -150,9 +143,6 @@ type Edged struct {
 	EdgedMemoryCapacity int64 `json:"edgedMemoryCapacity,omitempty"`
 	// PodSandboxImage is the image whose network/ipc namespaces containers in each pod will use.
 	// +Required
-	// kubeedge/pause:3.1 for x86 arch
-	// kubeedge/pause-arm:3.1 for arm arch
-	// kubeedge/pause-arm64 for arm64 arch
 	// default kubeedge/pause:3.1
 	PodSandboxImage string `json:"podSandboxImage,omitempty"`
 	// ImagePullProgressDeadline indicates image pull progress dead line (second)
@@ -170,10 +160,11 @@ type Edged struct {
 	//RegisterNodeNamespace indicates register node namespace
 	// default "default"
 	RegisterNodeNamespace string `json:"registerNodeNamespace,omitempty"`
-	// InterfaceName indicates interface name
-	// default "eth0"
-	// DEPRECATED after v1.5
-	InterfaceName string `json:"interfaceName,omitempty"`
+	// CustomInterfaceName indicates the name of the network interface used for obtaining the IP address.
+	// Setting this will override the setting 'NodeIP' if provided.
+	// If this is not defined the IP address is obtained by the hostname.
+	// default ""
+	CustomInterfaceName string `json:"customInterfaceName,omitempty"`
 	// ConcurrentConsumers indicates concurrent consumers for pod add or remove operation
 	// default 5
 	ConcurrentConsumers int `json:"concurrentConsumers,omitempty"`
@@ -251,7 +242,7 @@ type EdgeHub struct {
 	// Enable indicates whether EdgeHub is enabled,
 	// if set to false (for debugging etc.), skip checking other EdgeHub configs.
 	// default true
-	Enable bool `json:"enable,omitempty"`
+	Enable bool `json:"enable"`
 	// Heartbeat indicates heart beat (second)
 	// default 15
 	Heartbeat int32 `json:"heartbeat,omitempty"`
@@ -286,7 +277,7 @@ type EdgeHub struct {
 type EdgeHubQUIC struct {
 	// Enable indicates whether enable this protocol
 	// default false
-	Enable bool `json:"enable,omitempty"`
+	Enable bool `json:"enable"`
 	// HandshakeTimeout indicates hand shake timeout (second)
 	// default 30
 	HandshakeTimeout int32 `json:"handshakeTimeout,omitempty"`
@@ -305,7 +296,7 @@ type EdgeHubQUIC struct {
 type EdgeHubWebSocket struct {
 	// Enable indicates whether enable this protocol
 	// default true
-	Enable bool `json:"enable,omitempty"`
+	Enable bool `json:"enable"`
 	// HandshakeTimeout indicates handshake timeout (second)
 	// default  30
 	HandshakeTimeout int32 `json:"handshakeTimeout,omitempty"`
@@ -325,7 +316,7 @@ type EventBus struct {
 	// Enable indicates whether EventBus is enabled, if set to false (for debugging etc.),
 	// skip checking other EventBus configs.
 	// default true
-	Enable bool `json:"enable,omitempty"`
+	Enable bool `json:"enable"`
 	// MqttQOS indicates mqtt qos
 	// 0: QOSAtMostOnce, 1: QOSAtLeastOnce, 2: QOSExactlyOnce
 	// default 0
@@ -360,7 +351,7 @@ type EventBus struct {
 type EventBusTLS struct {
 	// Enable indicates whether enable tls connection
 	// default false
-	Enable bool `json:"enable,omitempty"`
+	Enable bool `json:"enable"`
 	// TLSMqttCAFile sets ca file path
 	// default "/etc/kubeedge/ca/rootCA.crt"
 	TLSMqttCAFile string `json:"tlsMqttCAFile,omitempty"`
@@ -377,7 +368,7 @@ type MetaManager struct {
 	// Enable indicates whether MetaManager is enabled,
 	// if set to false (for debugging etc.), skip checking other MetaManager configs.
 	// default true
-	Enable bool `json:"enable,omitempty"`
+	Enable bool `json:"enable"`
 	// ContextSendGroup indicates send group
 	ContextSendGroup metaconfig.GroupName `json:"contextSendGroup,omitempty"`
 	// ContextSendModule indicates send module
@@ -393,8 +384,9 @@ type MetaManager struct {
 }
 
 type MetaServer struct {
-	Enable bool `json:"enable,omitempty"`
-	Debug  bool `json:"debug,omitempty"`
+	Enable bool   `json:"enable"`
+	Debug  bool   `json:"debug"`
+	Server string `json:"server"`
 }
 
 // ServiceBus indicates the ServiceBus module config
@@ -410,7 +402,7 @@ type DeviceTwin struct {
 	// Enable indicates whether DeviceTwin is enabled,
 	// if set to false (for debugging etc.), skip checking other DeviceTwin configs.
 	// default true
-	Enable bool `json:"enable,omitempty"`
+	Enable bool `json:"enable"`
 }
 
 // DBTest indicates the DBTest module config
@@ -419,26 +411,6 @@ type DBTest struct {
 	// if set to false (for debugging etc.), skip checking other DBTest configs.
 	// default false
 	Enable bool `json:"enable"`
-}
-
-// EdgeMesh indicates the EdgeMesh module config
-type EdgeMesh struct {
-	// Enable indicates whether EdgeMesh is enabled,
-	// if set to false (for debugging etc.), skip checking other EdgeMesh configs.
-	// default true
-	Enable bool `json:"enable,omitempty"`
-	// lbStrategy indicates load balance strategy name
-	// default "RoundRobin"
-	LBStrategy string `json:"lbStrategy,omitempty"`
-	// ListenInterface indicates the listen interface of EdgeMesh
-	// default "docker0"
-	ListenInterface string `json:"listenInterface,omitempty"`
-	// SubNet indicates the subnet of EdgeMesh
-	// default "9.251.0.0/16"
-	SubNet string `json:"subNet,omitempty"`
-	// ListenPort indicates the listen port of EdgeMesh
-	// default 40001
-	ListenPort int `json:"listenPort,omitempty"`
 }
 
 // EdgeSream indicates the stream controller
