@@ -123,6 +123,7 @@ func (im *Manager) reconcile() {
 			klog.ErrorS(err, "Failed to ensure rules", "table", utiliptables.TableNAT, "chain", tunnelPortChain)
 			return
 		}
+		klog.Info("Successfully add rules", " table:", utiliptables.TableNAT, " chain:", tunnelPortChain)
 	}
 
 	for _, ipports := range deletedIPPort {
@@ -133,6 +134,7 @@ func (im *Manager) reconcile() {
 			klog.ErrorS(err, "Failed to delete rules", "table", utiliptables.TableNAT, "chain", tunnelPortChain)
 			return
 		}
+		klog.Info("Successfully delete rule", " table:", utiliptables.TableNAT, " chain:", tunnelPortChain)
 	}
 }
 
