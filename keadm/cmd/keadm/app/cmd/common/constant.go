@@ -103,7 +103,7 @@ const (
 	StrCheck    = "check"
 	StrDiagnose = "diagnose"
 
-	CmdGetDNSIP         = "cat /etc/resolv.conf |grep nameserver|grep -v ':'|awk '{print $2}'|sed -n '1p'"
+	CmdGetDNSIP         = "cat /etc/resolv.conf | grep nameserver | grep -v -E ':|#' | awk '{print $2}' | head -n1"
 	CmdGetStatusDocker  = "systemctl status docker |grep Active | awk '{print $2}'"
 	CmdPing             = "ping %s -w %d |grep 'packets transmitted' |awk '{print $6}'"
 	CmdGetMaxProcessNum = "sysctl kernel.pid_max|awk '{print $3}'"

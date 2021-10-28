@@ -144,7 +144,6 @@ integrationtest:
 endif
 
 CROSSBUILD_COMPONENTS=edgecore\
-	edgesite\
 	keadm
 
 GOARM_VALUES=GOARM7 \
@@ -274,6 +273,10 @@ admissionimage:
 .PHONY: csidriverimage
 csidriverimage:
 	docker build --build-arg GO_LDFLAGS=${GO_LDFLAGS} -t kubeedge/csidriver:${IMAGE_TAG} -f build/csidriver/Dockerfile .
+
+.PHONY: iptablesmgrimage
+iptablesmgrimage:
+	docker build --build-arg GO_LDFLAGS=${GO_LDFLAGS} -t kubeedge/iptables-manager:${IMAGE_TAG} -f build/iptablesManager/Dockerfile .
 
 .PHONY: edgeimage
 edgeimage:
