@@ -38,12 +38,21 @@ type JoinOptions struct {
 	CertPath              string
 	CloudCoreIPPort       string
 	EdgeNodeName          string
+	EdgeNodeIP            string
+	EnableDefaultTaint    bool
+	EnableMetaServer      bool
+	EnableServiceBus      bool
+	DownloadRegion        string
 	RuntimeType           string
 	RemoteRuntimeEndpoint string
 	Token                 string
 	CertPort              string
+	QuicPort              string
+	TunnelPort            string
 	CGroupDriver          string
 	Labels                []string
+	KubeEdgeDownloadURL   string
+	ServiceFileURLFormat  string
 }
 
 type CheckOptions struct {
