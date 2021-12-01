@@ -205,8 +205,8 @@ jobs:
     runs-on: ubuntu-18.04
     timeout-minutes: 30
     name: Test helm install and uninstall
-    env:
-      IMAGE_TAG: v1.8.2
+    env: 
+      CLUSTER_NAME: kubeedge-chart
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
@@ -232,11 +232,18 @@ jobs:
         uses: helm/kind-action@v1.2.0
         with:
           config: .github/workflows/kind/kind.yaml
+          cluster_name: ${{ env.CLUSTER_NAME }}
       
       - name: Set environmental variables
         run: |
           NODE_IP=$(kubectl get nodes -o jsonpath={.items[0].status.addresses[0].address})
           echo "NODE_IP=$NODE_IP" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$(date +%Y%m%d)" >> $GITHUB_ENV
+
+      - name: Build cloudimage
+        run: |
+          make cloudimage -e IMAGE_TAG=${IMAGE_TAG}
+          kind load docker-image kubeedge/cloudcore:${IMAGE_TAG} --name ${CLUSTER_NAME}
 
       - name: Setting up kubeedge cloudcore
         run: |
