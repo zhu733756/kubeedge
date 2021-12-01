@@ -200,3 +200,64 @@ jobs:
       - run: make edgesite-server-image ARCH="amd64"
 
       - run: make iptablesmgrimage
+
+  helm-ci:
+    runs-on: ubuntu-18.04
+    timeout-minutes: 30
+    name: Test helm install and uninstall
+    env:
+      IMAGE_TAG: v1.8.2
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.2.0
+        with:
+          config: .github/workflows/kind/kind.yaml
+      
+      - name: Set environmental variables
+        run: |
+          NODE_IP=$(kubectl get nodes -o jsonpath={.items[0].status.addresses[0].address})
+          echo "NODE_IP=$NODE_IP" >> $GITHUB_ENV
+
+      - name: Setting up kubeedge cloudcore
+        run: |
+          cd build/helm && helm upgrade --install cloudcore ./cloudcore --namespace kubeedge --create-namespace -f ./cloudcore/values.yaml --set cloudCore.modules.cloudHub.advertiseAddress[0]=${NODE_IP} --set cloudCore.image.tag=${IMAGE_TAG}
+      
+      - name: Waiting for 10 seconds to keep cloudcore installed
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '10s'
+
+      - name: Check cloudcore status
+        run: |
+          status=`kubectl get pods -n kubeedge | grep -i "cloudcore" |awk '{ print $3 }'`
+          if [ "$status" != "Running" ]; then
+             echo "Please check to your codes, the cloudcore cannot work normally..."
+             kubectl -n kubeedge logs -l kubeedge=cloudcore | grep -i "error"
+             exit 1
+          fi
+        
+      - name: Uninstall cloudcore
+        run: |
+          helm uninstall cloudcore -n kubeedge
+          kubectl delete ns kubeedge
+
