@@ -23,13 +23,13 @@ import (
 	"github.com/kubeedge/kubeedge/cloud/pkg/cloudhub"
 	"github.com/kubeedge/kubeedge/cloud/pkg/cloudhub/servers/httpserver"
 	"github.com/kubeedge/kubeedge/cloud/pkg/cloudstream"
-	"github.com/kubeedge/kubeedge/cloud/pkg/cloudstream/iptables"
 	"github.com/kubeedge/kubeedge/cloud/pkg/common/client"
 	"github.com/kubeedge/kubeedge/cloud/pkg/common/informers"
 	"github.com/kubeedge/kubeedge/cloud/pkg/common/modules"
 	"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller"
 	"github.com/kubeedge/kubeedge/cloud/pkg/dynamiccontroller"
 	"github.com/kubeedge/kubeedge/cloud/pkg/edgecontroller"
+	"github.com/kubeedge/kubeedge/cloud/pkg/iptablesmgr"
 	"github.com/kubeedge/kubeedge/cloud/pkg/router"
 	"github.com/kubeedge/kubeedge/cloud/pkg/synccontroller"
 	"github.com/kubeedge/kubeedge/common/constants"
@@ -91,16 +91,17 @@ kubernetes controller which manages devices so that the device metadata/status d
 
 			registerModules(config)
 
+			ctx := beehiveContext.GetContext()
 			if config.Modules.IptablesManager == nil || config.Modules.IptablesManager.Enable && config.Modules.IptablesManager.Mode == v1alpha1.InternalMode {
 				// By default, IptablesManager manages tunnel port related iptables rules
 				// The internal mode will share the host network, forward to the stream port.
 				streamPort := int(config.Modules.CloudStream.StreamPort)
-				go iptables.NewIptablesManager(streamPort).Run()
+				go iptablesmgr.NewIptablesManager(config.KubeAPIConfig, streamPort).Run(ctx)
 			}
 
 			// Start all modules
 			core.StartModules()
-			gis.Start(beehiveContext.Done())
+			gis.Start(ctx.Done())
 			core.GracefulShutdown()
 		},
 	}
