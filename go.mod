@@ -16,29 +16,28 @@ require (
 	github.com/emicklei/go-restful v2.9.6+incompatible
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/golang/mock v1.4.4
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/mock v1.5.0
+	github.com/golang/protobuf v1.5.2
 	github.com/google/cadvisor v0.39.0
-	github.com/google/uuid v1.1.2
+	github.com/google/uuid v1.2.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
-	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/kubeedge/beehive v0.0.0
 	github.com/kubeedge/viaduct v0.0.0
 	github.com/kubernetes-csi/csi-lib-utils v0.6.1
-	github.com/lib/pq v1.2.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.9
 	github.com/mitchellh/go-ps v0.0.0-20190716172923-621e5597135b
-	github.com/onsi/ginkgo v1.12.0
-	github.com/onsi/gomega v1.8.1
+	github.com/onsi/ginkgo v1.14.0
+	github.com/onsi/gomega v1.10.3
 	github.com/paypal/gatt v0.0.0-20151011220935-4ae819d591cf
-	github.com/prometheus/client_golang v1.7.1
+	github.com/prometheus/client_golang v1.11.0
 	github.com/shirou/gopsutil v2.20.9+incompatible
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/net v0.0.0-20210224082022-3d97a244fca7
-	google.golang.org/grpc v1.27.1
+	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
+	google.golang.org/grpc v1.38.0
+	helm.sh/helm/v3 v3.6.3
 	k8s.io/api v0.21.4
 	k8s.io/apiextensions-apiserver v0.21.4
 	k8s.io/apimachinery v0.21.4
@@ -51,13 +50,14 @@ require (
 	k8s.io/component-base v0.21.4
 	k8s.io/cri-api v0.21.4
 	k8s.io/csi-translation-lib v0.21.4
-	k8s.io/klog/v2 v2.8.0
-	k8s.io/kube-openapi v0.0.0-20210305001622-591a79e4bda7
+	k8s.io/klog/v2 v2.9.0
+	k8s.io/kube-openapi v0.0.0-20211109043538-20434351676c
 	k8s.io/kube-scheduler v0.21.4 // indirect
 	k8s.io/kubelet v0.21.4
 	k8s.io/kubernetes v1.21.4
 	k8s.io/mount-utils v0.21.4
-	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
+	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a
+	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/apiserver-network-proxy v0.0.20
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.22
 	sigs.k8s.io/yaml v1.2.0
@@ -104,3 +104,5 @@ replace (
 	k8s.io/utils v0.0.0 => k8s.io/utils v0.21.4
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client => sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.22
 )
+
+replace google.golang.org/grpc => google.golang.org/grpc v1.26.0

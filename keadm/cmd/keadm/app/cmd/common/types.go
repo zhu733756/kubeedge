@@ -30,6 +30,23 @@ type InitOptions struct {
 	TarballPath      string
 }
 
+//InitBetaOptions has the kubeedge cloud init-beta information filled by CLI
+type InitBetaOptions struct {
+	KubeConfig       string
+	AdvertiseAddress string
+	Charts           string
+	Manifests        string
+	Namespace        string
+	DryRun           bool
+	CloudcoreImage   string
+	CloudcoreTag     string
+	IptablesMgrImage string
+	IptablesMgrTag   string
+	Sets             []string
+	Profile          string
+	Force            bool
+}
+
 //JoinOptions has the kubeedge cloud init information filled by CLI
 type JoinOptions struct {
 	InitOptions
@@ -138,4 +155,16 @@ type OSTypeInstaller interface {
 type FlagData struct {
 	Val    interface{}
 	DefVal interface{}
+}
+
+// HelmComponent defines the interface for a cloud component.
+type HelmComponent interface {
+	// Name returns the name of the component.
+	Name() string
+	// Namespace returns the namespace for the component.
+	Namespace() string
+	// Install starts the component. Must me called before the component is used.
+	Install() error
+	// RenderManifest returns a string with the rendered manifest for the component.
+	RenderManifest() (string, error)
 }
