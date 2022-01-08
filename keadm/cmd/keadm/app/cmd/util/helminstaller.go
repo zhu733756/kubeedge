@@ -23,9 +23,10 @@ import (
 const (
 	DefaultHelmRoot        = ""
 	CloudCoreHelmComponent = "cloudcore"
+	EdgemeshHelmComponent  = "cloudcore"
 	EdgemeshHelmDir        = "edgemesh"
 	CloudCoreHelmDir       = "cloudcore"
-	HelmAddonsDir          = "addons"
+	AddonsHelmDir          = "addons"
 	DefaultHelmTimeout     = time.Duration(60 * time.Second)
 	DefaultHelmInstall     = true
 	DefaultHelmWait        = true
@@ -101,7 +102,7 @@ func (cu *KubeCloudHelmInstTool) InstallTools() error {
 // BeforeRenderer handles the value of the profile.
 func (cu *KubeCloudHelmInstTool) BeforeRenderer() error {
 	if cu.Profile == "" {
-		cu.Profile = fmt.Sprintf("%s=%s", types.VersionProfileKey, types.SupportedMinVersion)
+		cu.Profile = fmt.Sprintf("%s=%s", types.VersionProfileKey, types.HelmSupportedMinVersion)
 	}
 	// profile must be invalid
 	p := strings.Split(cu.Profile, "=")
@@ -142,7 +143,7 @@ func (cu *KubeCloudHelmInstTool) buildRenderer() (*Renderer, error) {
 			subDir = CloudCoreHelmDir
 		case types.EdgemeshProfileKey:
 			// edgemesh will integrate later
-			componentName = CloudCoreHelmComponent
+			componentName = EdgemeshHelmComponent
 			subDir = EdgemeshHelmDir
 		default:
 			componentName = CloudCoreHelmComponent
@@ -150,7 +151,7 @@ func (cu *KubeCloudHelmInstTool) buildRenderer() (*Renderer, error) {
 		}
 	} else {
 		componentName = cu.ProfileKey
-		subDir = fmt.Sprintf("%s/%s", HelmAddonsDir, cu.ProfileKey)
+		subDir = fmt.Sprintf("%s/%s", AddonsHelmDir, cu.ProfileKey)
 	}
 
 	// render the chart with the given values
@@ -200,8 +201,11 @@ func (cu *KubeCloudHelmInstTool) RunHelmInstall(r *Renderer) error {
 	helmUpgrade := action.NewUpgrade(cfg)
 	helmUpgrade.DryRun = cu.DryRun
 	helmUpgrade.Namespace = cu.Namespace
-	helmUpgrade.Wait = DefaultHelmWait
-	helmUpgrade.Timeout = DefaultHelmTimeout
+	// --force would not wait.
+	if !cu.Force {
+		helmUpgrade.Wait = DefaultHelmWait
+		helmUpgrade.Timeout = DefaultHelmTimeout
+	}
 	helmUpgrade.Install = DefaultHelmInstall
 
 	_, err := helmUpgrade.Run(r.componentName, r.chart, r.profileValsMap)
@@ -212,21 +216,20 @@ func (cu *KubeCloudHelmInstTool) RunHelmInstall(r *Renderer) error {
 			helmInstall := action.NewInstall(cfg)
 			helmInstall.DryRun = cu.DryRun
 			helmInstall.Namespace = cu.Namespace
-			helmInstall.Wait = DefaultHelmWait
-			helmInstall.Timeout = DefaultHelmTimeout
+			if !cu.Force {
+				helmInstall.Wait = DefaultHelmWait
+				helmInstall.Timeout = DefaultHelmTimeout
+			}
 			helmInstall.CreateNamespace = DefaultHelmCreateNs
 			helmInstall.ReleaseName = r.componentName
 
 			if _, err := helmInstall.Run(r.chart, r.profileValsMap); err != nil {
 				return err
 			}
-
 			return nil
 		}
-
 		return err
 	}
-
 	return nil
 }
 
@@ -253,21 +256,33 @@ func (cu *KubeCloudHelmInstTool) checkProfile() error {
 }
 
 func (cu *KubeCloudHelmInstTool) handleProfile(profileValue string) error {
-	profileValueSuffix := strings.TrimPrefix(profileValue, "v")
 	switch cu.ProfileKey {
 	case types.VersionProfileKey:
-		version, err := semver.Make(profileValueSuffix)
-		if err != nil {
-			return err
-		}
+		profileValueSuffix := strings.TrimPrefix(profileValue, "v")
+		// confirm it startswith "v"
+		if profileValue != profileValueSuffix {
+			version, err := semver.Make(profileValueSuffix)
+			if err != nil {
+				return err
+			}
+			minVersion, _ := semver.Make(strings.TrimPrefix(types.HelmSupportedMinVersion, "v"))
+			if version.LT(minVersion) {
+				return fmt.Errorf("the given version %s is not supported, you can try binary deployments with this version", profileValue)
+			}
 
-		minVersion, _ := semver.Make(strings.TrimPrefix(types.SupportedMinVersion, "v"))
-		if version.LT(minVersion) {
-			return fmt.Errorf("the given version %s is not supported, you can use binary deployments", profileValue)
+			cu.Sets = append(cu.Sets, fmt.Sprintf("%s=v%s", "cloudCore.image.tag", profileValueSuffix))
+			cu.Sets = append(cu.Sets, fmt.Sprintf("%s=v%s", "iptablesManager.image.tag", profileValueSuffix))
+		} else {
+			cu.Sets = append(cu.Sets, fmt.Sprintf("%s=%s", "cloudCore.image.tag", profileValue))
+			cu.Sets = append(cu.Sets, fmt.Sprintf("%s=%s", "iptablesManager.image.tag", profileValue))
 		}
-
-		cu.Sets = append(cu.Sets, fmt.Sprintf("%s=v%s", "cloudCore.image.tag", profileValueSuffix))
-		cu.Sets = append(cu.Sets, fmt.Sprintf("%s=v%s", "iptablesManager.image.tag", profileValueSuffix))
+	case types.IptablesMgrProfileKey:
+		switch profileValue {
+		case types.InternalIptablesMgrMode, types.ExternalIptablesMgrMode:
+			cu.Sets = append(cu.Sets, fmt.Sprintf("%s=%s", "iptablesManager.mode", profileValue))
+		default:
+			profileValue = types.ExternalIptablesMgrMode
+		}
 	default:
 	}
 	return nil

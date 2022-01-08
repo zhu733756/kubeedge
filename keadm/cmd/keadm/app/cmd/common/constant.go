@@ -195,10 +195,12 @@ const (
 	AllowedCurrentValueMem  = 128 * MB
 	AllowedCurrentValueDisk = 512 * MB
 
-	VersionProfileKey     = "version"
-	IptablesMgrProfileKey = "iptablemgr"
-	EdgemeshProfileKey    = "edgemesh"
-	SupportedMinVersion   = "v1.9.1"
+	VersionProfileKey       = "version"
+	IptablesMgrProfileKey   = "iptablesmgr"
+	ExternalIptablesMgrMode = "external"
+	InternalIptablesMgrMode = "internal"
+	EdgemeshProfileKey      = "edgemesh"
+	HelmSupportedMinVersion = "v1.9.0"
 )
 
 var (

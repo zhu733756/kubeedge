@@ -38,9 +38,9 @@ If not installed, please install the Kubernetes first.
 	cloudInitBetaExample = `
 keadm init
 
-- This command will download and install the default version of KubeEdge cloud component
+- This command will download and install the given version of KubeEdge cloud component
 
-keadm init-beta --advertiseAddress=127.0.0.1 [--set cloudcore-tag=v1.9.1] --profile version=v1.9.1 -n kubeedge --kube-config=/root/.kube/config
+keadm init-beta --advertise-address=127.0.0.1 [--set cloudcore-tag=v1.9.0] --profile version=v1.9.0 -n kubeedge --kube-config=/root/.kube/config
 
   - kube-config is the absolute path of kubeconfig which used to secure connectivity between cloudcore and kube-apiserver
 `
@@ -48,7 +48,7 @@ keadm init-beta --advertiseAddress=127.0.0.1 [--set cloudcore-tag=v1.9.1] --prof
 
 // NewCloudInit represents the keadm init command for cloud component
 func NewCloudInitBeta() *cobra.Command {
-	init := newInitBetaOptions()
+	initbeta := newInitBetaOptions()
 
 	tools := make(map[string]types.ToolsInstaller)
 	flagVals := make(map[string]types.FlagData)
@@ -63,7 +63,7 @@ func NewCloudInitBeta() *cobra.Command {
 				util.AddToolVals(f, flagVals)
 			}
 			cmd.Flags().VisitAll(checkFlags)
-			err := AddInitBeta2ToolsList(tools, flagVals, init)
+			err := AddInitBeta2ToolsList(tools, flagVals, initbeta)
 			if err != nil {
 				return err
 			}
@@ -71,8 +71,8 @@ func NewCloudInitBeta() *cobra.Command {
 		},
 	}
 
-	addInitBetaJoinOtherFlags(cmd, init)
-	addHelmValueOptionsFlags(cmd, init)
+	addInitBetaJoinOtherFlags(cmd, initbeta)
+	addHelmValueOptionsFlags(cmd, initbeta)
 	return cmd
 }
 
@@ -106,16 +106,16 @@ func addInitBetaJoinOtherFlags(cmd *cobra.Command, initBetaOpts *types.InitBetaO
 		"Forced installing the cloud components.")
 
 	cmd.Flags().StringVar(&initBetaOpts.CloudcoreImage, types.CloudcoreImage, initBetaOpts.CloudcoreImage,
-		"The whole image of the cloudcore, default is kubeedge/cloudcore:v1.9.1")
+		"The whole image of the cloudcore, default is kubeedge/cloudcore:v1.9.0")
 
 	cmd.Flags().StringVar(&initBetaOpts.CloudcoreTag, types.CloudcoreTag, initBetaOpts.CloudcoreTag,
-		"The image tag of the cloudcore, default is v1.9.1")
+		"The image tag of the cloudcore, default is v1.9.0")
 
 	cmd.Flags().StringVar(&initBetaOpts.IptablesMgrImage, types.IptablesMgrImage, initBetaOpts.IptablesMgrImage,
-		"The whole image of the iptables manager, default is kubeedge/cloudcore:v1.9.1")
+		"The whole image of the iptables manager, default is kubeedge/cloudcore:v1.9.0")
 
 	cmd.Flags().StringVar(&initBetaOpts.IptablesMgrTag, types.IptablesMgrTag, initBetaOpts.IptablesMgrTag,
-		"The image tag of the iptables manager, default is v1.9.1")
+		"The image tag of the iptables manager, default is v1.9.0")
 }
 
 func addHelmValueOptionsFlags(cmd *cobra.Command, initBetaOpts *types.InitBetaOptions) {
