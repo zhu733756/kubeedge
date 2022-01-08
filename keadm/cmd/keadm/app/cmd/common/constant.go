@@ -98,6 +98,13 @@ const (
 	// Forced install
 	Force = "force"
 
+	// Skip CRDs
+	SkipCRDs = "skip-crds"
+
+	// Helm action
+	HelmInstallAction  = "install"
+	HelmManifestAction = "manifest"
+
 	// Images and tags
 	CloudcoreImage   = "cloudcore-image"
 	CloudcoreTag     = "cloudcore-tag"

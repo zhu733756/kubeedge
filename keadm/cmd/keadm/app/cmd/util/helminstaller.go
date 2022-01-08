@@ -3,7 +3,9 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -49,6 +51,8 @@ type KubeCloudHelmInstTool struct {
 	Profile          string
 	ProfileKey       string
 	Force            bool
+	SkipCRDs         bool
+	Action           string
 }
 
 // InstallTools downloads KubeEdge for the specified version
@@ -57,6 +61,26 @@ func (cu *KubeCloudHelmInstTool) InstallTools() error {
 	cu.SetOSInterface(GetOSInterface())
 	cu.SetKubeEdgeVersion(cu.ToolVersion)
 
+	switch cu.Action {
+	case types.HelmInstallAction:
+		if err := cu.RunHelmInstall(); err != nil {
+			return err
+		}
+	case types.HelmManifestAction:
+		if err := cu.RunHelmManifest(); err != nil {
+			return err
+		}
+	default:
+		if err := cu.RunHelmInstall(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// RunHelmInstall renders the Charts with the given values, then installs the Charts to the cluster.
+func (cu *KubeCloudHelmInstTool) RunHelmInstall() error {
 	// --force would not care about whether the cloud components exist or not
 	if !cu.Force {
 		cloudCoreRunning, err := cu.IsKubeEdgeProcessRunning(KubeCloudBinaryName)
@@ -91,11 +115,35 @@ func (cu *KubeCloudHelmInstTool) InstallTools() error {
 		return fmt.Errorf("cannot load the given charts %s, error: %s", renderer.componentName, err.Error())
 	}
 
-	if err := cu.RunHelmInstall(renderer); err != nil {
+	if err := cu.runHelmInstall(renderer); err != nil {
 		return err
 	}
 
 	fmt.Println("CloudCore started")
+	return nil
+}
+
+func (cu *KubeCloudHelmInstTool) RunHelmManifest() error {
+	// prepare to render
+	if err := cu.BeforeRenderer(); err != nil {
+		return err
+	}
+
+	// build a renderer instance with the given values and flagvals
+	renderer, err := cu.buildRenderer()
+	if err != nil {
+		return fmt.Errorf("cannot build chart render %s, error: %s", renderer.componentName, err.Error())
+	}
+
+	// load the charts to this renderer
+	if err := renderer.LoadChart(); err != nil {
+		return fmt.Errorf("cannot load the given charts %s, error: %s", renderer.componentName, err.Error())
+	}
+
+	if err := cu.runHelmManifest(renderer, os.Stdout); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -155,13 +203,13 @@ func (cu *KubeCloudHelmInstTool) buildRenderer() (*Renderer, error) {
 	}
 
 	// render the chart with the given values
-	render := NewGenericRenderer(keCharts.BuiltinOrDir(DefaultHelmRoot), subDir, componentName, cu.Namespace, profileValsMap)
+	render := NewGenericRenderer(keCharts.BuiltinOrDir(DefaultHelmRoot), subDir, componentName, cu.Namespace, profileValsMap, cu.SkipCRDs)
 	return render, nil
 }
 
 // RunHelmInstall starts cloudcore deployment with the given flags
-func (cu *KubeCloudHelmInstTool) HelmRenderer(r *Renderer) error {
-	manifiests, err := r.RenderManifest()
+func (cu *KubeCloudHelmInstTool) runHelmManifest(r *Renderer, stdout io.Writer) error {
+	manifests, err := r.RenderManifest()
 	if err != nil {
 		return fmt.Errorf("cannot render the given compoent %s, error: %s", r.componentName, err.Error())
 	}
@@ -177,14 +225,14 @@ func (cu *KubeCloudHelmInstTool) HelmRenderer(r *Renderer) error {
 			buf.WriteString(fmt.Sprintf("%b%s", body, YAMLSeparator))
 		}
 	}
-	buf.WriteString(manifiests)
+	buf.WriteString(manifests)
 
-	cu.Manifests = buf.String()
+	stdout.Write(buf.Bytes())
 	return nil
 }
 
 // RunHelmInstall starts cloudcore deployment with the given flags
-func (cu *KubeCloudHelmInstTool) RunHelmInstall(r *Renderer) error {
+func (cu *KubeCloudHelmInstTool) runHelmInstall(r *Renderer) error {
 	cf := genericclioptions.NewConfigFlags(true)
 	cf.KubeConfig = &cu.KubeConfig
 	cf.Namespace = &cu.Namespace

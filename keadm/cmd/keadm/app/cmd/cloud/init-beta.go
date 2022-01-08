@@ -36,9 +36,9 @@ It checks if the Kubernetes Master are installed already,
 If not installed, please install the Kubernetes first.
 `
 	cloudInitBetaExample = `
-keadm init
+keadm init-beta
 
-- This command will download and install the given version of KubeEdge cloud component
+- This command will render and install the Charts for Kubeedge cloud component
 
 keadm init-beta --advertise-address=127.0.0.1 [--set cloudcore-tag=v1.9.0] --profile version=v1.9.0 -n kubeedge --kube-config=/root/.kube/config
 
@@ -73,6 +73,7 @@ func NewCloudInitBeta() *cobra.Command {
 
 	addInitBetaJoinOtherFlags(cmd, initbeta)
 	addHelmValueOptionsFlags(cmd, initbeta)
+	addForceOptionsFlags(cmd, initbeta)
 	return cmd
 }
 
@@ -102,9 +103,6 @@ func addInitBetaJoinOtherFlags(cmd *cobra.Command, initBetaOpts *types.InitBetaO
 	cmd.Flags().BoolVarP(&initBetaOpts.DryRun, types.DryRun, "d", initBetaOpts.DryRun,
 		"Print the generated k8s resources on the stdout, not actual excute. Always use in debug mode")
 
-	cmd.Flags().BoolVar(&initBetaOpts.Force, types.Force, initBetaOpts.Force,
-		"Forced installing the cloud components.")
-
 	cmd.Flags().StringVar(&initBetaOpts.CloudcoreImage, types.CloudcoreImage, initBetaOpts.CloudcoreImage,
 		"The whole image of the cloudcore, default is kubeedge/cloudcore:v1.9.0")
 
@@ -121,6 +119,11 @@ func addInitBetaJoinOtherFlags(cmd *cobra.Command, initBetaOpts *types.InitBetaO
 func addHelmValueOptionsFlags(cmd *cobra.Command, initBetaOpts *types.InitBetaOptions) {
 	cmd.Flags().StringArrayVar(&initBetaOpts.Sets, "set", []string{}, "set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	cmd.Flags().StringVar(&initBetaOpts.Profile, "profile", initBetaOpts.Profile, "set profile on the command line (iptablesMgrMode=external or version=1.9.1)")
+}
+
+func addForceOptionsFlags(cmd *cobra.Command, initBetaOpts *types.InitBetaOptions) {
+	cmd.Flags().BoolVar(&initBetaOpts.Force, types.Force, initBetaOpts.Force,
+		"Forced installing the cloud components.")
 }
 
 //Add2ToolsList Reads the flagData (containing val and default val) and join options to fill the list of tools.
@@ -165,6 +168,7 @@ func AddInitBeta2ToolsList(toolList map[string]types.ToolsInstaller, flagData ma
 		Sets:             initBetaOptions.Sets,
 		Profile:          initBetaOptions.Profile,
 		Force:            initBetaOptions.Force,
+		Action:           types.HelmInstallAction,
 	}
 	return nil
 }

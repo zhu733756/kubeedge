@@ -48,17 +48,19 @@ type Renderer struct {
 	files          fs.FS
 	dir            string
 	profileValsMap map[string]interface{}
+	skipCRDs       bool
 }
 
 // NewFileTemplateRenderer creates a TemplateRenderer with the given parameters and returns a pointer to it.
 // helmChartDirPath must be an absolute file path to the root of the helm charts.
-func NewGenericRenderer(files fs.FS, dir, componentName, namespace string, profileValsMap map[string]interface{}) *Renderer {
+func NewGenericRenderer(files fs.FS, dir, componentName, namespace string, profileValsMap map[string]interface{}, skipCRDs bool) *Renderer {
 	return &Renderer{
 		namespace:      namespace,
 		componentName:  componentName,
 		dir:            dir,
 		files:          files,
 		profileValsMap: profileValsMap,
+		skipCRDs:       skipCRDs,
 	}
 }
 
@@ -156,7 +158,7 @@ func (h *Renderer) renderChart(filterFunc TemplateFilterFunc) (string, error) {
 		f := files[keys[i]]
 		// add yaml separator if the rendered file doesn't have one at the end
 		f = strings.TrimSpace(f) + "\n"
-		if !strings.HasSuffix(f, YAMLSeparator) || !strings.HasSuffix(f, YAMLSeparator[1:]) {
+		if !strings.HasSuffix(f, YAMLSeparator) {
 			f += YAMLSeparator
 		}
 		_, err := sb.WriteString(f)
@@ -166,17 +168,19 @@ func (h *Renderer) renderChart(filterFunc TemplateFilterFunc) (string, error) {
 	}
 
 	// Sort crd files by name to ensure stable manifest output
-	sort.Slice(crdFiles, func(i, j int) bool { return crdFiles[i].Name < crdFiles[j].Name })
-	for _, crdFile := range crdFiles {
-		f := string(crdFile.File.Data)
-		// add yaml separator if the rendered file doesn't have one at the end
-		f = strings.TrimSpace(f) + "\n"
-		if !strings.HasSuffix(f, YAMLSeparator) {
-			f += YAMLSeparator
-		}
-		_, err := sb.WriteString(f)
-		if err != nil {
-			return "", err
+	if !h.skipCRDs {
+		sort.Slice(crdFiles, func(i, j int) bool { return crdFiles[i].Name < crdFiles[j].Name })
+		for _, crdFile := range crdFiles {
+			f := string(crdFile.File.Data)
+			// add yaml separator if the rendered file doesn't have one at the end
+			f = strings.TrimSpace(f) + "\n"
+			if !strings.HasSuffix(f, YAMLSeparator) {
+				f += YAMLSeparator
+			}
+			_, err := sb.WriteString(f)
+			if err != nil {
+				return "", err
+			}
 		}
 	}
 
