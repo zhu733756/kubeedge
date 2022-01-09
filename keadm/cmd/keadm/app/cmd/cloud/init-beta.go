@@ -114,6 +114,9 @@ func addInitBetaJoinOtherFlags(cmd *cobra.Command, initBetaOpts *types.InitBetaO
 
 	cmd.Flags().StringVar(&initBetaOpts.IptablesMgrTag, types.IptablesMgrTag, initBetaOpts.IptablesMgrTag,
 		"The image tag of the iptables manager, default is v1.9.0")
+
+	cmd.Flags().StringVar(&initBetaOpts.ExternalHelmRoot, types.ExternalHelmRoot, initBetaOpts.ExternalHelmRoot,
+		"The image tag of the iptables manager, default is v1.9.0")
 }
 
 func addHelmValueOptionsFlags(cmd *cobra.Command, initBetaOpts *types.InitBetaOptions) {
@@ -167,6 +170,7 @@ func AddInitBeta2ToolsList(toolList map[string]types.ToolsInstaller, flagData ma
 		IptablesMgrTag:   initBetaOptions.IptablesMgrTag,
 		Sets:             initBetaOptions.Sets,
 		Profile:          initBetaOptions.Profile,
+		ExternalHelmRoot: initBetaOptions.ExternalHelmRoot,
 		Force:            initBetaOptions.Force,
 		Action:           types.HelmInstallAction,
 	}

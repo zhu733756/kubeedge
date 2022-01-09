@@ -34,18 +34,18 @@ type InitOptions struct {
 type InitBetaOptions struct {
 	KubeConfig       string
 	AdvertiseAddress string
-	Charts           string
 	Manifests        string
 	Namespace        string
-	DryRun           bool
 	CloudcoreImage   string
 	CloudcoreTag     string
 	IptablesMgrImage string
 	IptablesMgrTag   string
 	Sets             []string
 	Profile          string
+	ExternalHelmRoot string
 	Force            bool
 	SkipCRDs         bool
+	DryRun           bool
 }
 
 //JoinOptions has the kubeedge cloud init information filled by CLI

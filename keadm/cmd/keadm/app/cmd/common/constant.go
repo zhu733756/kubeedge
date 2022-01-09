@@ -80,8 +80,6 @@ const (
 	StrDiagnose = "diagnose"
 
 	// Init-beta flags combined below:
-	// Allow appending file directories of charts to keadm, separated by commas
-	Charts = "charts"
 
 	// Allow appending manifests paths of manifests to keadm, separated by commas
 	Manifests = "manifests"
@@ -100,6 +98,9 @@ const (
 
 	// Skip CRDs
 	SkipCRDs = "skip-crds"
+
+	// External Helm Root
+	ExternalHelmRoot = "external-helm-root"
 
 	// Helm action
 	HelmInstallAction  = "install"

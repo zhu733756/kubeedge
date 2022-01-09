@@ -12,18 +12,11 @@ import (
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/engine"
-
-	keCharts "github.com/kubeedge/kubeedge/build/helm/charts"
 )
 
 // Inspired by https://github.com/istio/istio/blob/194bc3c820a37a38ef40a1cf305529638fbfa169/operator/pkg/helm/renderer.go
 
 const (
-	// DefaultProfileFilename is the name of the default profile yaml file.
-	DefaultProfileFilename = "version.yaml"
-
-	profilesRoot = "profiles"
-
 	// YAMLSeparator is a separator for multi-document YAML files.
 	YAMLSeparator = "\n---\n"
 
@@ -202,57 +195,9 @@ func GetFilesRecursive(f fs.FS, root string) ([]string, error) {
 	return res, err
 }
 
-func builtinProfileToFilename(name string) string {
-	if name == "" {
-		return DefaultProfileFilename
-	}
-	return name + ".yaml"
-}
-
-func LoadValues(profileKey string, chartsDir string) (string, error) {
-	path := strings.Join([]string{profilesRoot, builtinProfileToFilename(profileKey)}, "/")
-	by, err := fs.ReadFile(keCharts.BuiltinOrDir(chartsDir), path)
-	if err != nil {
-		return "", err
-	}
-	return string(by), nil
-}
-
-func readProfiles(chartsDir string) (map[string]bool, error) {
-	profiles := map[string]bool{}
-	f := keCharts.BuiltinOrDir(chartsDir)
-	dir, err := fs.ReadDir(f, profilesRoot)
-	if err != nil {
-		return nil, err
-	}
-	for _, f := range dir {
-		trimmedString := strings.TrimSuffix(f.Name(), ".yaml")
-		if f.Name() != trimmedString {
-			profiles[trimmedString] = true
-		}
-	}
-	return profiles, nil
-}
-
 // stripPrefix removes the the given prefix from prefix.
 func stripPrefix(path, prefix string) string {
 	pl := len(strings.Split(prefix, "/"))
 	pv := strings.Split(path, "/")
 	return strings.Join(pv[pl:], "/")
-}
-
-// list all the profiles.
-func ListProfiles(charts string) ([]string, error) {
-	profiles, err := readProfiles(charts)
-	if err != nil {
-		return nil, err
-	}
-
-	s := make([]string, 0, len(profiles))
-	for k, v := range profiles {
-		if v {
-			s = append(s, k)
-		}
-	}
-	return s, nil
 }
