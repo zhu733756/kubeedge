@@ -56,8 +56,8 @@ function check_golangci-lint {
   if [[ $? -ne 0 ]]; then
     install_golangci-lint
   else
-    version=$(golangci-lint version)
-    if [[ $version =~ $expectedVersion ]]; then
+    version=$(golangci-lint version | awk -F " " '{ print $4 }')
+    if test "$(echo -e "$version\n$expectedVersion" | tr " " "\n" | sort -V | head -n 1)" == "$expectedVersion" ; then
       echo -n "found golangci-lint, version: " && golangci-lint version
     else
       echo "golangci-lint version not matched, now version is $version, begin to install new version $expectedVersion"
