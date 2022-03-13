@@ -30,15 +30,16 @@ type InitOptions struct {
 	TarballPath      string
 }
 
-//BetaInitOptions has the kubeedge cloud init-beta information filled by CLI
-type BetaInitOptions struct {
+//InitBetaOptions has the kubeedge cloud init-beta information filled by CLI
+type InitBetaOptions struct {
 	KubeConfig       string
+	KubeEdgeVersion  string
 	AdvertiseAddress string
 	Manifests        string
 	Namespace        string
-	CloudcoreImage   string
+	CloudcoreRepo    string
 	CloudcoreTag     string
-	IptablesMgrImage string
+	IptablesMgrRepo  string
 	IptablesMgrTag   string
 	Sets             []string
 	Profile          string
