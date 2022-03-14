@@ -16,11 +16,11 @@
 
 KUBEEDGE_ROOT=$PWD
 WORKDIR=$(dirname $0)
-HELM_DIR=$KUBEEDGE_ROOT/helm/charts
 E2E_DIR=$(realpath $(dirname $0)/..)
 
 debugflag="-test.v -ginkgo.v"
 IMAGE_TAG=$(git describe --tags)
+debugflag="-test.v -ginkgo.v"
 
 function cleanup() {
   sudo pkill edgecore || true
@@ -48,22 +48,20 @@ function prepare_cluster() {
   kubectl delete daemonset kindnet -nkube-system
 }
 
-function build_cloud_image() {
+function build_image() {
   cd $KUBEEDGE_ROOT
   make image WHAT=cloudcore -f $KUBEEDGE_ROOT/Makefile
+  make image WHAT=installation-package -f $KUBEEDGE_ROOT/Makefile
   kind load docker-image kubeedge/cloudcore:$IMAGE_TAG --name test
+  kind load docker-image kubeedge/installation-package:$IMAGE_TAG --name test
 }
 
 function start_kubeedge() {
-  local KUBEEDGE_VERSION="$@"
-
   sudo mkdir -p /var/lib/kubeedge
   cd $KUBEEDGE_ROOT
   export KUBECONFIG=$HOME/.kube/config
 
-  cd $HELM_DIR
-  SET_ARGS="--set cloudCore.modules.cloudHub.advertiseAddress[0]=$MASTER_IP --set cloudCore.image.tag=$IMAGE_TAG --set cloudCore.service.enable=false"
-  helm upgrade --install --wait --timeout 30s cloudcore ./cloudcore --namespace kubeedge --create-namespace -f ./cloudcore/values.yaml $SET_ARGS
+  _output/local/bin/keadm beta init --set cloudCore.modules.cloudHub.advertiseAddress[0]=$MASTER_IP --set cloudCore.image.tag=$IMAGE_TAG --set cloudCore.service.enable=false --kube-config=$KUBECONFIG
   export MASTER_IP=`kubectl get node test-control-plane -o jsonpath={.status.addresses[0].address}`
 
   # ensure tokensecret is generated
@@ -75,7 +73,7 @@ function start_kubeedge() {
   cd $KUBEEDGE_ROOT
   export TOKEN=$(sudo _output/local/bin/keadm gettoken --kube-config=$KUBECONFIG)
   sudo systemctl set-environment CHECK_EDGECORE_ENVIRONMENT="false"
-  sudo -E CHECK_EDGECORE_ENVIRONMENT="false" _output/local/bin/keadm join --token=$TOKEN --cloudcore-ipport=$MASTER_IP:10000 --edgenode-name=edge-node --kubeedge-version=${KUBEEDGE_VERSION}
+  sudo -E CHECK_EDGECORE_ENVIRONMENT="false" _output/local/bin/keadm beta join --token=$TOKEN --cloudcore-ipport=$MASTER_IP:10000 --edgenode-name=edge-node --kubeedge-version=$IMAGE_TAG
 
   #Pre-configurations required for running the suite.
   #Any new config addition required corresponding code changes.
@@ -135,10 +133,10 @@ echo -e "\nPreparing cluster..."
 prepare_cluster
 
 echo -e "\nBuilding cloud image..."
-build_cloud_image
+build_image
 
 echo -e "\nStarting kubeedge..."
-start_kubeedge ""
+start_kubeedge
 
 echo -e "\nRunning test..."
 run_test

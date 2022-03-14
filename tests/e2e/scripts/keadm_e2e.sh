@@ -87,6 +87,7 @@ END
   while true; do
       sleep 3
       kubectl get node | grep edge-node | grep -q Ready && break
+      echo 
   done
 }
 
