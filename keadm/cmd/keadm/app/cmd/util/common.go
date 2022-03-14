@@ -28,6 +28,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/blang/semver"
 	"github.com/spf13/pflag"
@@ -190,7 +191,10 @@ func RunningModule() (types.ModuleRunning, error) {
 // GetLatestVersion return the latest non-prerelease, non-draft version of kubeedge in releases
 func GetLatestVersion() (string, error) {
 	// curl https://kubeedge.io/latestversion
-	resp, err := http.Get(latestReleaseVersionURL)
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+	resp, err := client.Get(latestReleaseVersionURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to get latest version from %s: %v", latestReleaseVersionURL, err)
 	}
