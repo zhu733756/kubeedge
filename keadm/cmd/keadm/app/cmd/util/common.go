@@ -29,6 +29,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/blang/semver"
 	"github.com/spf13/pflag"
@@ -79,6 +80,7 @@ const (
 
 	latestReleaseVersionURL = "https://kubeedge.io/latestversion"
 	RetryTimes              = 5
+	DefaultTimeout          = 5 * time.Second
 
 	APT    string = "apt"
 	YUM    string = "yum"
@@ -194,7 +196,10 @@ func RunningModule() (types.ModuleRunning, error) {
 // GetLatestVersion return the latest non-prerelease, non-draft version of kubeedge in releases
 func GetLatestVersion() (string, error) {
 	// curl https://kubeedge.io/latestversion
-	resp, err := http.Get(latestReleaseVersionURL)
+	client := http.Client{
+		Timeout: DefaultTimeout,
+	}
+	resp, err := client.Get(latestReleaseVersionURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to get latest version from %s: %v", latestReleaseVersionURL, err)
 	}
